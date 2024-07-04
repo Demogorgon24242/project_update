@@ -2,75 +2,51 @@ name: LLM Regression Test
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 jobs:
-  run_extractor:
+  build-and-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install git++https://github.com/Demogorgon24242/deepeval_open.git
+        pip install mlflow pandas ollama flask pymongo
 
-      - name: Install Dependencies
-        run: poetry install --no-root
+    - name: Run extractor.py
+      run: |
+        python extractor.py
 
-      - name: Run extractor.py
-        run: poetry run python extractor.py
+    - name: Run bot.py
+      run: |
+        python bot.py
 
-  
+    - name: Run deepeval test_bias.py
+      run: |
+        deepeval test run test_bias.py -i
 
-  run_bot:
-    runs-on: ubuntu-latest
-    needs: query_and_generate_csv
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Run deepeval test_coherence.py 
+      run: |
+        deepeval test run test_coherence.py -i
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+    - name: Run deepeval test_injection.py 
+      run: |
+        deepeval test run test_injection.py -i
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install Dependencies
-        run: poetry install --no-root
-
-      - name: Run bot.py
-        run: poetry run python bot.py
-
-  run_tests:
-    runs-on: ubuntu-latest
-    needs: run_bot
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install Dependencies
-        run: poetry install --no-root
-
-      - name: Run DeepEval Unit Tests
-        run: poetry run deepeval test run test_file.py -i
+    - name: Run deepeval test_toxicity.py 
+      run: |
+        deepeval test run test_toxicity.py -i
