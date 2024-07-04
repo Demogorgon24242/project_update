@@ -73,7 +73,7 @@ def extract_from_mongo(log_dataframe):
     
     
 def main():
-    folder_path = r"CICD_exp\project_update\up_alert_logs"  # Use raw string to avoid unicode errors
+    folder_path = r"up_alert_logs"  # Use raw string to avoid unicode errors
     all_data = []
 
     for filename in os.listdir(folder_path):
