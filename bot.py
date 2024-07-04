@@ -1,9 +1,8 @@
 import pandas as pd
 import os
+import requests
 
-from ollama import Client
 
-ollama_client = Client(host='http://localhost:11434')
 def ingest_csv(file_path):
     """
     Ingest a CSV file if it exists and return a DataFrame.
@@ -16,25 +15,19 @@ def ingest_csv(file_path):
         return None
 
 def call_model(input_text):
-    """
-    Call the LLaMA3 model running locally and return the generated output.
-    """
     
-    payload = {
-        'model_name': 'llama3',
-        'prompt': input_text
-    }
-    headers = {
-        'Content-Type': 'application/json'
-    }
-    response = ollama_client.chat(model=payload['model_name'], messages=[{'role': 'user', 'content': payload['prompt']}], stream=False)
-    
-    if response:
-        return response['message']['content']
-    else:
-        print(f"Failed to call LLaMA3 model: {response}")
-        return 'N/A'
+    url="http://44.203.86.100:11434/api/generate"
 
+    response = requests.post(url, json={"model": "mistral",  "prompt": input_text,"stream": False})
+
+        # Check if the request was successful
+        # if response.status_code == 200:
+        # # Extract the result from the response
+        #     result = response.json()["response"]
+        # else:
+        #     result="Error"
+        # print("Answer:", result)
+    return response.json()["response"]
 def generate_outputs(df):
     """
     Generate new outputs using the LLaMA3 model for the input prompts in the DataFrame.
