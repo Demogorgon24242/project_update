@@ -13,6 +13,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Fetch Public IP
+      id: fetch-ip
+      run: |
+        echo "::set-output name=my_ip::$(curl -s https://api.ipify.org)"
+      
+    - name: Authorize Security Group Ingress
+      run: |
+        aws ec2 authorize-security-group-ingress --group-id sg-02a10b5d2f02e077c --protocol tcp --port 11434 --cidr "${{ steps.fetch-ip.outputs.my_ip }}/32" --output text --region us-east-1
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Checkout code
       uses: actions/checkout@v3
 
